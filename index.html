@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เกมแยกประสาทและศิลปะตามต้นแบบ 7 ด่าน 🧠🎨</title>
+    <style>
+        body {
+            font-family: 'Kanit', sans-serif;
+            background-color: #f0f8ff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            text-align: center;
+            transition: background-color 0.5s;
+            user-select: none;
+        }
+        #app-container {
+            background: white;
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            width: 95%;
+            max-width: 450px;
+            position: relative;
+        }
+        
+        /* --- เมนูหลัก --- */
+        #menu-screen { display: block; }
+        .menu-btn {
+            color: white;
+            padding: 10px;
+            font-size: 14px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            width: 100%;
+            font-weight: bold;
+            margin-bottom: 6px;
+            transition: transform 0.1s;
+        }
+        .menu-btn:active { transform: scale(0.95); }
+        .menu-btn.lvl1 { background-color: #007AFF; }
+        .menu-btn.lvl2 { background-color: #AF52DE; }
+        .menu-btn.lvl3 { background-color: #FF9500; }
+        .menu-btn.lvl4 { background-color: #FF2D55; }
+        .menu-btn.lvl5 { background-color: #34C759; }
+        .menu-btn.lvl6 { background-color: #5856D6; }
+        .menu-btn.lvl7 { background-color: #FF2D55; background: linear-gradient(45deg, #FF2D55, #FF9500); }
+
+        /* --- นับถอยหลัง --- */
+        #countdown-screen {
+            display: none;
+            font-size: 100px;
+            font-weight: bold;
+            color: #FF2D55;
+            text-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+        }
+
+        /* --- หน้าจอเกม --- */
+        #game-screen { display: none; }
+        h1 { color: #333; font-size: 22px; margin-bottom: 5px; }
+        p.rules { color: #666; font-size: 14px; margin-bottom: 10px; line-height: 1.5; }
+        
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            background: #eee;
+            padding: 8px 15px;
+            border-radius: 10px;
+        }
+        .target-score { font-size: 11px; color: #FF2D55; display: block; margin-top: 2px; }
+        
+        #display-area {
+            margin: 5px 0 15px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            border: 2px dashed #ccc;
+            min-height: 90px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        #distractor-icon { font-size: 35px; margin-bottom: 5px; display: none; }
+        #word-display { font-size: 35px; font-weight: bold; text-shadow: 1px 1px 2px rgba(0,0,0,0.1); }
+        
+        #options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        #options.grid-6 { grid-template-columns: 1fr 1fr 1fr; }
+        #options.grid-8 { grid-template-columns: 1fr 1fr; }
+        #options.grid-2 { grid-template-columns: 1fr 1fr; }
+
+        .game-btn {
+            padding: 10px 5px;
+            font-size: 18px;
+            font-weight: bold;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.1s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 60px;
+        }
+        .game-btn:active { transform: scale(0.95); }
+        .shape-btn { background-color: #f1f1f1; border: 2px solid #ddd; color: #333; font-size: 25px; }
+        .shape-btn span { font-size: 11px; margin-top: 5px; color: #555; }
+        .btn-chaos { font-size: 12px !important; line-height: 1.2; }
+        .vocab-btn { background-color: white; border: 2px solid #34C759; color: #333; min-height: 45px; font-size: 18px; }
+        .math-true-btn { background-color: #34C759; color: white; font-size: 24px; min-height: 70px; }
+        .math-false-btn { background-color: #FF3B30; color: white; font-size: 24px; min-height: 70px; }
+
+        /* --- สไตล์ด่าน 7 (ตาราง 12x12 จุดสีเล็กลง) --- */
+        #art-container { display: none; width: 100%; flex-direction: column; align-items: center; }
+        
+        /* ตารางรูปต้นแบบตัวอย่าง */
+        .preview-box {
+            background: #fafafa;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 8px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        .preview-title { font-size: 12px; color: #777; margin-bottom: 4px; font-weight: bold;}
+        .art-preview-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 1px;
+            width: 130px;
+            height: 130px;
+            background: #eee;
+            padding: 2px;
+            border-radius: 5px;
+            margin: 0 auto;
+        }
+        .preview-cell { border-radius: 1px; box-shadow: inset 0 0 1px rgba(0,0,0,0.05); }
+
+        /* ตารางวาดจริงของผู้เล่น */
+        .pixel-grid-12 {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 2px;
+            background: #d1d1d1;
+            padding: 5px;
+            border-radius: 12px;
+            width: 300px;
+            height: 300px;
+            margin-bottom: 15px;
+        }
+        .pixel-cell-mini {
+            background-color: #ffffff;
+            border-radius: 2px;
+            cursor: pointer;
+            transition: background-color 0.1s;
+            box-shadow: inset 0 0 2px rgba(0,0,0,0.1);
+        }
+        .palette {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 15px;
+            background: #f1f1f1;
+            padding: 8px 12px;
+            border-radius: 30px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .color-dot {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: transform 0.1s;
+        }
+        .color-dot.active {
+            transform: scale(1.2);
+            border-color: #333;
+        }
+        #art-submit-btn {
+            background: linear-gradient(45deg, #34C759, #007AFF);
+            color: white;
+            font-size: 18px;
+            padding: 10px 25px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+        }
+
+        #action-btn {
+            background-color: #333;
+            color: white;
+            padding: 12px;
+            font-size: 16px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            width: 100%;
+            font-weight: bold;
+            margin-top: 15px;
+            display: none;
+        }
+        #home-btn {
+            background-color: transparent;
+            color: #666;
+            border: 1px solid #ccc;
+            padding: 8px;
+            width: 100%;
+            border-radius: 12px;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<div id="app-container">
+    <div id="menu-screen">
+        <h2>🧠 เลือกด่านทดสอบประสาท</h2>
+        <button class="menu-btn lvl1" onclick="startCountdown(1)">ด่าน 1: จับสี (ง่าย)</button>
+        <button class="menu-btn lvl2" onclick="startCountdown(2)">ด่าน 2: จับรูปทรง (ปานกลาง)</button>
+        <button class="menu-btn lvl3" onclick="startCountdown(3)">ด่าน 3: ABCD สี (ยาก)</button>
+        <button class="menu-btn lvl4" onclick="startCountdown(4)">ด่าน 4: 6 ช่องมหาสนุก (นรก)</button>
+        <button class="menu-btn lvl5" onclick="startCountdown(5)">ด่าน 5: จับคำผิด (โบนัสเวลา)</button>
+        <button class="menu-btn lvl6" onclick="startCountdown(6)">ด่าน 6: สมองไว บวกลบเลข 🔢</button>
+        <button class="menu-btn lvl7" onclick="startCountdown(7)">ด่าน 7: แต้มสีตามรูปแบบ 🎨 (จุดเล็ก)</button>
+    </div>
+
+    <div id="countdown-screen">3</div>
+
+    <div id="game-screen">
+        <h1 id="level-title">ด่าน X</h1>
+        <p class="rules" id="instruction">คำอธิบาย</p>
+        
+        <div class="stats" id="game-stats-box">
+            <span>⏱ เวลา: <span id="time">60</span>s</span>
+            <span style="text-align: right;">
+                🏆 คะแนน: <span id="score">0</span>
+                <span class="target-score" id="target-text">(เป้าหมาย: 35)</span>
+            </span>
+        </div>
+
+        <div id="display-area">
+            <div id="distractor-icon">❓</div>
+            <div id="word-display">พร้อมไหม?</div>
+        </div>
+
+        <div id="options"></div>
+
+        <div id="art-container">
+            <div class="preview-box">
+                <div class="preview-title">🖼️ รูปภาพต้นแบบ (ระบายตามนี้เลย!)</div>
+                <div class="art-preview-grid" id="art-preview"></div>
+            </div>
+            <div class="palette" id="art-palette"></div>
+            <div class="pixel-grid-12" id="pixel-canvas-12"></div>
+            <button id="art-submit-btn" onclick="evaluateArt()">✨ ส่งผลงานสุดเจ๋ง</button>
+        </div>
+
+        <button id="action-btn" onclick="nextLevelAction()">ไปต่อ</button>
+        <button id="home-btn" onclick="showMenu()">🏠 กลับเมนูหลัก</button>
+    </div>
+</div>
+
+<script>
+    // --- ระบบสังเคราะห์เสียง ---
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    
+    function playSound(type) {
+        if(audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        osc.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        const now = audioCtx.currentTime;
+
+        if (type === 'start') {
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(523.25, now); 
+            osc.frequency.setValueAtTime(659.25, now + 0.1); 
+            osc.frequency.setValueAtTime(783.99, now + 0.2); 
+            osc.frequency.setValueAtTime(1046.50, now + 0.3); 
+            gainNode.gain.setValueAtTime(0, now);
+            gainNode.gain.linearRampToValueAtTime(0.3, now + 0.1);
+            gainNode.gain.linearRampToValueAtTime(0, now + 0.4);
+            osc.start(now); osc.stop(now + 0.4);
+        } else if (type === 'correct') {
+            osc.type = 'sine'; osc.frequency.setValueAtTime(1046.50, now); 
+            gainNode.gain.setValueAtTime(0.3, now);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+            osc.start(now); osc.stop(now + 0.15);
+        } else if (type === 'wrong') {
+            osc.type = 'triangle'; osc.frequency.setValueAtTime(150, now);
+            gainNode.gain.setValueAtTime(0.4, now);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+            osc.start(now); osc.stop(now + 0.2);
+        } else if (type === 'tick') {
+            osc.type = 'sine'; osc.frequency.setValueAtTime(880, now); 
+            gainNode.gain.setValueAtTime(0.15, now);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+            osc.start(now); osc.stop(now + 0.05);
+        } else if (type === 'magic') {
+            osc.type = 'sine'; osc.frequency.setValueAtTime(587.33, now);
+            osc.frequency.exponentialRampToValueAtTime(1174.66, now + 0.4);
+            gainNode.gain.setValueAtTime(0.2, now);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+            osc.start(now); osc.stop(now + 0.4);
+        }
+    }
+
+    // --- ฐานข้อมูลเกมหลัก ---
+    const colorsData = [
+        { name: "สีแดง", hex: "#FF3B30" }, { name: "สีเขียว", hex: "#34C759" },
+        { name: "สีน้ำเงิน", hex: "#007AFF" }, { name: "สีเหลือง", hex: "#FFCC00" },
+        { name: "สีชมพู", hex: "#FF2D55" }, { name: "สีส้ม", hex: "#FF9500" },
+        { name: "สีม่วง", hex: "#AF52DE" }, { name: "สีดำ", hex: "#333333" }
+    ];
+
+    const shapesData = [
+        { id: "square", name: "สี่เหลี่ยม", icon: "🟦" }, { id: "circle", name: "วงกลม", icon: "🔴" },
+        { id: "star", name: "รูปดาว", icon: "⭐" }, { id: "triangle", name: "สามเหลี่ยม", icon: "🔺" }
+    ];
+
+    const abcdData = [
+        { letter: "A", hex: "#FF3B30", name: "แดง" }, { letter: "B", hex: "#34C759", name: "เขียว" },
+        { letter: "C", hex: "#007AFF", name: "น้ำเงิน" }, { letter: "D", hex: "#FFCC00", name: "เหลือง" }
+    ];
+
+    const animalsList = ["🐶", "🐱", "🦊", "🐼", "🦁", "🐸", "🐷", "🐵"];
+
+    const vocabData = [
+        { correct: "กระต่าย", wrong: "กะต่าย" }, { correct: "น้ำแข็ง", wrong: "นำแข็ง" },
+        { correct: "ผู้หญิง", wrong: "พู้หญิง" }, { correct: "ร้องไห้", wrong: "ร้องให้" },
+        { correct: "ต้นไม้", wrong: "ตนไม้" }, { correct: "ภูเขา", wrong: "พูเขา" }
+    ];
+
+    // --- ฐานข้อมูลแผนที่รูปภาพด่าน 7 (ตาราง 12x12 อาร์เรย์ 144 ช่อง) ---
+    // รหัสสี: 0=ขาว, 1=แดง, 2=เขียว, 3=เหลือง, 4=ชมพู, 5=น้ำเงิน, 6=ดำ
+    const artColorMap = { 0: "#ffffff", 1: "#FF3B30", 2: "#34C759", 3: "#FFCC00", 4: "#FF2D55", 5: "#007AFF", 6: "#333333" };
+    const artColors = ["#FF3B30", "#34C759", "#007AFF", "#FFCC00", "#FF2D55", "#333333", "#ffffff"];
+    let selectedArtColor = artColors[0];
+
+    const pixelTemplates = [
+        {
+            name: "❤️ รูปหัวใจแสนรัก",
+            grid: [
+                0,0,0,0,0,0,0,0,0,0,0,0,
+                0,0,4,4,0,0,0,4,4,0,0,0,
+                0,4,4,4,4,0,0,4,4,4,4,0,
+                4,4,4,4,4,4,4,4,4,4,4,4,
+                4,4,4,4,4,4,4,4,4,4,4,4,
+                0,4,4,4,4,4,4,4,4,4,4,0,
+                0,0,4,4,4,4,4,4,4,4,0,0,
+                0,0,0,4,4,4,4,4,4,0,0,0,
+                0,0,0,0,4,4,4,4,0,0,0,0,
+                0,0,0,0,0,4,4,0,0,0,0,0,
+                0,0,0,0,0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,0,0,0,0,0
+            ]
+        },
+        {
+            name: "🛸 ยานอวกาศ UFO",
+            grid: [
+                0,0,0,0,0,0,0,0,0,0,0,0,
+                0,0,0,0,0,5,5,0,0,0,0,0,
+                0,0,0,0,5,5,5,5,0,0,0,0,
+                0,0,0,5,5,5,5,5,5,0,0,0,
+                0,0,1,1,1,1,1,1,1,1,0,0,
+                0,1,1,3,1,3,1,3,1,1,1,0,
+                0,0,1,1,1,1,1,1,1,1,0,0,
+                0,0,0,0,6,0,0,6,0,0,0,0,
+                0,0,0,6,0,0,0,0,6,0,0,0,
+                0,0,0,0,0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,0,0,0,0,0,
+                0,0,0,0,0,0,0,0,0,0,0,0
+            ]
+        },
+        {
+            name: "🐥 เป็ดน้อยกิ๊บก๊าบ",
+            grid: [
+                0,0,0,0,0,0,0,0,0,0,0,0,
+                0,0,0,0,3,3,3,3,0,0,0,0,
+                0,0,0,3,3,6,3,3,3,0,0,0,
+                0,0,0,3,3,3,3,3,1,1,0,0,
+                0,0,0,0,3,3,3,3,1,1,0,0,
+                0,0,3,3,3,3,3,3,3,0,0,0,
+                0,3,3,3,3,3,3,3,3,3,0,0,
+                0,3,3,3,3,3,3,3,3,3,0,0,
+                0,0,3,3,3,3,3,3,3,0,0,0,
+                0,0,0,0,1,0,0,1,0,0,0,0,
+                0,0,0,1,1,0,0,1,1,0,0,0,
+                0,0,0,0,0,0,0,0,0,0,0,0
+            ]
+        }
+    ];
+
+    // --- ตัวแปรควบคุมเกม ---
+    let currentLevel = 1; let score = 0; let timeLeft = 60;
+    let timer; let countdownTimer; let currentCorrectAnswer = "";
+    let lvl5CorrectCount = 0; let lvl6QuestionCount = 0;
+
+    const menuScreen = document.getElementById("menu-screen");
+    const countdownScreen = document.getElementById("countdown-screen");
+    const gameScreen = document.getElementById("game-screen");
+    const levelTitle = document.getElementById("level-title");
+    const instruction = document.getElementById("instruction");
+    const wordDisplay = document.getElementById("word-display");
+    const distractorIcon = document.getElementById("distractor-icon");
+    const optionsContainer = document.getElementById("options");
+    
+    const artContainer = document.getElementById("art-container");
+    const artPreview = document.getElementById("art-preview");
+    const pixelCanvas12 = document.getElementById("pixel-canvas-12");
+    const artPalette = document.getElementById("art-palette");
+    
+    const actionBtn = document.getElementById("action-btn");
+    const scoreDisplay = document.getElementById("score");
+    const timeDisplay = document.getElementById("time");
+    const targetText = document.getElementById("target-text");
+    const statsBox = document.getElementById("game-stats-box");
+
+    function showMenu() {
+        clearInterval(timer); clearInterval(countdownTimer);
+        document.body.style.backgroundColor = "#f0f8ff";
+        menuScreen.style.display = "block"; gameScreen.style.display = "none"; countdownScreen.style.display = "none";
+    }
+
+    function startCountdown(level) {
+        if(audioCtx.state === 'suspended') audioCtx.resume();
+        currentLevel = level; menuScreen.style.display = "none"; gameScreen.style.display = "none"; countdownScreen.style.display = "block";
+        document.body.style.backgroundColor = "#fff";
+        let count = 3; countdownScreen.innerText = count;
+        countdownTimer = setInterval(() => {
+            count--;
+            if (count > 0) { countdownScreen.innerText = count; } 
+            else { clearInterval(countdownTimer); countdownScreen.style.display = "none"; startGame(); }
+        }, 1000);
+    }
+
+    function startGame() {
+        playSound('start'); score = 0; timeLeft = 60; lvl5CorrectCount = 0; lvl6QuestionCount = 0;
+        scoreDisplay.innerText = score; timeDisplay.innerText = timeLeft;
+        gameScreen.style.display = "block"; actionBtn.style.display = "none";
+        distractorIcon.style.display = (currentLevel === 2) ? "block" : "none";
+        
+        if (currentLevel === 7) {
+            optionsContainer.style.display = "none"; displayArea.style.display = "none";
+            artContainer.style.display = "flex"; statsBox.style.display = "none";
+        } else {
+            optionsContainer.style.display = "grid"; displayArea.style.display = "flex";
+            artContainer.style.display = "none"; statsBox.style.display = "flex";
+            optionsContainer.className = "grid"; 
+            if(currentLevel === 4) optionsContainer.classList.add("grid-6");
+            if(currentLevel === 5) optionsContainer.classList.add("grid-8");
+            if(currentLevel === 6) optionsContainer.classList.add("grid-2");
+        }
+        setupLevelUI();
+        if (currentLevel !== 7) { timer = setInterval(updateTime, 1000); }
+        nextRound();
+    }
+
+    const displayArea = document.getElementById("display-area");
+
+    function setupLevelUI() {
+        if (currentLevel === 1) {
+            document.body.style.backgroundColor = "#e0f7fa"; levelTitle.innerText = "ด่าน 1: จับสี 🎨";
+            instruction.innerHTML = "กดปุ่มที่ตรงกับ <b>'สีของตัวหนังสือ'</b>"; targetText.innerText = "(เป้าหมาย: 35 คะแนน)";
+        } else if (currentLevel === 2) {
+            document.body.style.backgroundColor = "#fff0f5"; levelTitle.innerText = "ด่าน 2: จับรูปทรง 🔺";
+            instruction.innerHTML = "กดปุ่มให้ตรงกับ <b>'คำอ่าน'</b> (ระวังรูปหลอกตา)"; targetText.innerText = "(เป้าหมาย: 35 คะแนน)";
+        } else if (currentLevel === 3) {
+            document.body.style.backgroundColor = "#f5f5dc"; levelTitle.innerText = "ด่าน 3: ABCD สี 🔠";
+            instruction.innerHTML = "กด ABCD ให้ตรงกับ <b>'สีของตัวอักษร'</b>"; targetText.innerText = "(เป้าหมาย: 35 คะแนน)";
+            generateLvl3Buttons(); 
+        } else if (currentLevel === 4) {
+            document.body.style.backgroundColor = "#ffe4e1"; levelTitle.innerText = "ด่าน 4: 6 ช่องมหาสนุก 🌪️";
+            instruction.innerHTML = "หาช่องที่มี <b>'สีพื้นหลัง'</b> ตรงกับคำสั่ง"; targetText.innerText = "(เป้าหมาย: 35 คะแนน)";
+        } else if (currentLevel === 5) {
+            document.body.style.backgroundColor = "#e8f5e9"; levelTitle.innerText = "ด่าน 5: จับคำผิด ❌";
+            instruction.innerHTML = "หาคำที่ <b>'สะกดผิด'</b> <br><small style='color:#34C759'>คำละ 5 คะแนน | ตอบถูกครบ 10 คำ ผ่านด่าน!</small>"; targetText.innerText = "(เป้าหมาย: ถูกครบ 10 คำ)";
+        } else if (currentLevel === 6) {
+            document.body.style.backgroundColor = "#eceff1"; levelTitle.innerText = "ด่าน 6: สมองไว บวกลบเลข 🔢";
+            instruction.innerHTML = "คิดเลขให้ไว! สมการที่เห็น <b>'ถูก'</b> หรือ <b>'ผิด'</b>"; targetText.innerText = "(เป้าหมาย: เล่นให้ครบ 10 ข้อ)";
+        } else if (currentLevel === 7) {
+            document.body.style.backgroundColor = "#fef7e0"; levelTitle.innerText = "ด่าน 7: แต้มสีจุดเล็กตามรูปต้นแบบ 🎨✨";
+            instruction.innerHTML = "ดูรูปต้นแบบจิ๋วข้างบน เลือกสี แล้ว<b>แต้มจุดสีลงตารางข้างล่าง</b>ให้เหมือนที่สุด!<br><small style='color:#FF5722'>ไม่มีวันหมดเวลา ให้คะแนนความตั้งใจวาดระบายสี</small>";
+        }
+    }
+
+    function updateTime() {
+        timeLeft--; timeDisplay.innerText = timeLeft;
+        if (timeLeft <= 10 && timeLeft > 0) { playSound('tick'); timeDisplay.style.color = "#FF2D55"; } 
+        else if (timeLeft > 10) { timeDisplay.style.color = "#333"; }
+        if (timeLeft <= 0) { endLevel(false); }
+    }
+
+    function nextRound() {
+        if (currentLevel === 1) renderLvl1();
+        else if (currentLevel === 2) renderLvl2();
+        else if (currentLevel === 3) renderLvl3();
+        else if (currentLevel === 4) renderLvl4();
+        else if (currentLevel === 5) renderLvl5();
+        else if (currentLevel === 6) renderLvl6();
+        else if (currentLevel === 7) renderLvl7();
+    }
+
+    function checkAnswer(selected) {
+        if (selected === currentCorrectAnswer) {
+            playSound('correct'); 
+            if (currentLevel === 5) {
+                score += 5; timeLeft += 5; lvl5CorrectCount++;
+                scoreDisplay.innerText = score; timeDisplay.innerText = timeLeft;
+                if (lvl5CorrectCount >= 10) { endLevel(true); return; }
+            } else { score++; scoreDisplay.innerText = score; }
+        } else { playSound('wrong'); timeLeft = Math.max(0, timeLeft - 2); timeDisplay.innerText = timeLeft; }
+
+        if (currentLevel === 6) { lvl6QuestionCount++; if (lvl6QuestionCount >= 10) { endLevel(true); return; } }
+        nextRound();
+    }
+
+    // --- Logic 1-6 (ดึงฟังก์ชันเดิมมาทำงานทั้งหมดอย่างเสถียร) ---
+    function renderLvl1() {
+        let randWord = colorsData[Math.floor(Math.random() * colorsData.length)];
+        let randColor = colorsData[Math.floor(Math.random() * colorsData.length)];
+        currentCorrectAnswer = randColor.hex; wordDisplay.innerText = randWord.name; wordDisplay.style.color = randColor.hex;
+        optionsContainer.innerHTML = ""; let choices = [randColor];
+        while (choices.length < 4) { let opt = colorsData[Math.floor(Math.random() * colorsData.length)]; if (!choices.some(c => c.hex === opt.hex)) choices.push(opt); }
+        choices.sort(() => Math.random() - 0.5).forEach(choice => {
+            let btn = document.createElement("button"); btn.classList.add("game-btn"); btn.style.backgroundColor = choice.hex;
+            btn.style.color = (choice.hex === "#FFCC00") ? "#000" : "#FFF"; btn.innerText = choice.name; btn.onclick = () => checkAnswer(choice.hex); optionsContainer.appendChild(btn);
+        });
+    }
+    function renderLvl2() {
+        let correctShape = shapesData[Math.floor(Math.random() * shapesData.length)]; currentCorrectAnswer = correctShape.id;
+        wordDisplay.innerText = correctShape.name; wordDisplay.style.color = "#333";
+        let distractor = shapesData[Math.floor(Math.random() * shapesData.length)]; distractorIcon.innerText = distractor.icon;
+        optionsContainer.innerHTML = "";
+        [...shapesData].sort(() => Math.random() - 0.5).forEach(choice => {
+            let btn = document.createElement("button"); btn.classList.add("game-btn", "shape-btn"); btn.innerHTML = `${choice.icon} <br> <span>${choice.name}</span>`;
+            btn.onclick = () => checkAnswer(choice.id); optionsContainer.appendChild(btn);
+        });
+    }
+    function renderLvl3() {
+        let randLetter = abcdData[Math.floor(Math.random() * abcdData.length)].letter; let randColorData = abcdData[Math.floor(Math.random() * abcdData.length)];
+        currentCorrectAnswer = randColorData.letter; wordDisplay.innerText = randLetter; wordDisplay.style.color = randColorData.hex;
+    }
+    function generateLvl3Buttons() {
+        optionsContainer.innerHTML = "";
+        abcdData.forEach(data => {
+            let btn = document.createElement("button"); btn.classList.add("game-btn"); btn.style.backgroundColor = data.hex;
+            btn.style.color = (data.hex === "#FFCC00") ? "#000" : "#FFF"; btn.style.fontSize = "30px"; btn.innerText = data.letter; btn.onclick = () => checkAnswer(data.letter); optionsContainer.appendChild(btn);
+        });
+    }
+    function renderLvl4() {
+        let targetColor = colorsData[Math.floor(Math.random() * colorsData.length)]; let targetTextShape = colorsData[Math.floor(Math.random() * colorsData.length)]; 
+        currentCorrectAnswer = targetColor.hex; wordDisplay.innerText = `หา "${targetColor.name}"`; wordDisplay.style.color = targetTextShape.hex; 
+        optionsContainer.innerHTML = ""; let choices = [targetColor];
+        while (choices.length < 6) { let opt = colorsData[Math.floor(Math.random() * colorsData.length)]; if (!choices.some(c => c.hex === opt.hex)) choices.push(opt); }
+        choices.sort(() => Math.random() - 0.5).forEach(choice => {
+            let btn = document.createElement("button"); btn.classList.add("game-btn", "btn-chaos"); btn.style.backgroundColor = choice.hex;
+            btn.style.color = (choice.hex === "#FFCC00") ? "#000" : "#FFF";
+            let randAnimal = animalsList[Math.floor(Math.random() * animalsList.length)]; let randNum = Math.floor(Math.random() * 99) + 1;
+            let randFakeWord = colorsData[Math.floor(Math.random() * colorsData.length)].name;
+            btn.innerHTML = `${randAnimal} <br> ${randNum} <br> <span style="font-size:10px">${randFakeWord}</span>`; btn.onclick = () => checkAnswer(choice.hex); optionsContainer.appendChild(btn);
+        });
+    }
+    function renderLvl5() {
+        let targetPair = vocabData[Math.floor(Math.random() * vocabData.length)]; currentCorrectAnswer = targetPair.wrong; 
+        wordDisplay.innerText = `ข้อที่ ${lvl5CorrectCount + 1}/10`; wordDisplay.style.color = "#2E7D32"; wordDisplay.style.fontSize = "30px";
+        let choices = [targetPair.wrong]; let usedPairs = [targetPair];
+        while (choices.length < 6) { let optPair = vocabData[Math.floor(Math.random() * vocabData.length)]; if (!usedPairs.includes(optPair)) { usedPairs.push(optPair); choices.push(optPair.correct); } }
+        optionsContainer.innerHTML = ""; choices.sort(() => Math.random() - 0.5).forEach(word => {
+            let btn = document.createElement("button"); btn.classList.add("game-btn", "vocab-btn"); btn.innerText = word; btn.onclick = () => checkAnswer(word); optionsContainer.appendChild(btn);
+        });
+    }
+    function renderLvl6() {
+        wordDisplay.style.color = "#333"; wordDisplay.style.fontSize = "38px";
+        let num1 = Math.floor(Math.random() * 15) + 5; let num2 = Math.floor(Math.random() * 10) + 1;
+        let isPlus = Math.random() > 0.5; let realAnswer = isPlus ? (num1 + num2) : (num1 - num2); let sign = isPlus ? "+" : "-";
+        let showCorrectEquation = Math.random() > 0.5; let displayedAnswer = showCorrectEquation ? realAnswer : (realAnswer + (Math.random() > 0.5 ? 2 : -2));
+        currentCorrectAnswer = showCorrectEquation ? "YES" : "NO";
+        wordDisplay.innerText = `${num1} ${sign} ${num2} = ${displayedAnswer}`;
+        optionsContainer.innerHTML = "";
+        let btnTrue = document.createElement("button"); btnTrue.classList.add("game-btn", "math-true-btn"); btnTrue.innerText = "ถูก ✅"; btnTrue.onclick = () => checkAnswer("YES");
+        let btnFalse = document.createElement("button"); btnFalse.classList.add("game-btn", "math-false-btn"); btnFalse.innerText = "ผิด ❌"; btnFalse.onclick = () => checkAnswer("NO");
+        if (Math.random() > 0.5) { optionsContainer.appendChild(btnTrue); optionsContainer.appendChild(btnFalse); } else { optionsContainer.appendChild(btnFalse); optionsContainer.appendChild(btnTrue); }
+    }
+
+    // --- Logic ด่าน 7: ระบายสีจุดเล็กตามต้นแบบ (12x12 = 144 ช่อง) ---
+    function renderLvl7() {
+        // สุ่มโจทย์ต้นแบบภาพพิกเซล
+        let activeTemplate = pixelTemplates[Math.floor(Math.random() * pixelTemplates.length)];
+        levelTitle.innerText = `ด่าน 7: วาดรูปวาดใจ "${activeTemplate.name}"`;
+
+        // สร้างตารางภาพต้นแบบย่อส่วน (Preview Grid)
+        artPreview.innerHTML = "";
+        activeTemplate.grid.forEach(colorIndex => {
+            let pCell = document.createElement("div");
+            pCell.classList.add("preview-cell");
+            pCell.style.backgroundColor = artColorMap[colorIndex];
+            artPreview.appendChild(pCell);
+        });
+
+        // สร้างจานสีด้านล่างสำหรับให้เด็กจิ้มเลือกสี
+        artPalette.innerHTML = "";
+        artColors.forEach((color, idx) => {
+            let dot = document.createElement("div");
+            dot.classList.add("color-dot");
+            dot.style.backgroundColor = color;
+            if(color === "#ffffff") dot.style.border = "1px solid #ccc";
+            if(idx === 0) { dot.classList.add("active"); selectedArtColor = color; }
+            
+            dot.onclick = () => {
+                document.querySelectorAll(".color-dot").forEach(d => d.classList.remove("active"));
+                dot.classList.add("active"); selectedArtColor = color; playSound('tick');
+            };
+            artPalette.appendChild(dot);
+        });
+
+        // สร้างกระดานวาดรูปขนาด 12x12 (144 จุดสีจิ๋ว) ให้ระบายสี
+        pixelCanvas12.innerHTML = "";
+        for (let i = 0; i < 144; i++) {
+            let cell = document.createElement("div");
+            cell.classList.add("pixel-cell-mini");
+            cell.style.backgroundColor = "#ffffff";
+            
+            // เมื่อจิ้มแต้มสีจิ๋วลงไปช่องจะเปลี่ยนสีตามเลือก
+            cell.onclick = () => {
+                cell.style.backgroundColor = selectedArtColor;
+                playSound('tick');
+            };
+            pixelCanvas12.appendChild(cell);
+        }
+    }
+
+    // ระบบตรวจเช็กประเมินให้คะแนนความพยายามวาดภาพ
+    function evaluateArt() {
+        playSound('magic');
+        let totalColored = 0;
+        document.querySelectorAll(".pixel-cell-mini").forEach(cell => {
+            let bg = cell.style.backgroundColor;
+            if(bg && bg !== "white" && bg !== "#ffffff" && bg !== "rgb(255, 255, 255)") {
+                totalColored++;
+            }
+        });
+
+        // คำนวณคะแนนตามปริมาณจุดสีที่กด ยิ่งระบายเยอะ ยิ่งพยายามมาก คะแนนยิ่งสูง
+        let artScore = 75;
+        if(totalColored > 15) artScore += 15;
+        if(totalColored > 35) artScore += 8;
+        let finalScore = Math.min(100, artScore + Math.floor(Math.random() * 3));
+
+        let comments = ["ระบายสีตรงจุดได้ประณีตและน่ารักมากเลย!", "เป็นผลงานจุดพิกเซลที่วิเศษที่สุด!", "ความตั้งใจยอดเยี่ยม สมาธิดีเลิศ!", "สวยงามมาก สมกับเป็นจิตรกรตัวน้อย!"];
+        let finalComment = comments[Math.floor(Math.random() * comments.length)];
+
+        // แสดงสเตตัสปิดเกมฉลองความสำเร็จ
+        artContainer.style.display = "none";
+        actionBtn.style.display = "block";
+        displayArea.style.display = "flex";
+        
+        wordDisplay.innerText = "🎉 ผลงานพิกเซลเสร็จสมบูรณ์!";
+        instruction.innerHTML = `<b style='font-size:22px; color:#34C759;'>ได้คะแนนความพยายาม: ${finalScore}/100 คะแนนเต็ม!</b><br><span style='color:#FF9500; font-size:16px; font-weight:bold;'>"${finalComment}"</span>`;
+        
+        actionBtn.innerText = `🏆 ยินดีด้วย! คุณเคลียร์ครบหมดทั้ง 7 ด่านแล้ว (กลับหน้าแรก)`;
+        actionBtn.style.background = "linear-gradient(45deg, #34C759, #007AFF)";
+        actionBtn.onclick = showMenu;
+    }
+
+    // --- จบด่าน 1-6 ---
+    function endLevel(isWinTrigger = false) {
+        clearInterval(timer);
+        optionsContainer.style.display = "none"; artContainer.style.display = "none";
+        actionBtn.style.display = "block"; distractorIcon.style.display = "none";
+        timeDisplay.style.color = "#333";
+        
+        if (currentLevel === 5) {
+            if (isWinTrigger || lvl5CorrectCount >= 10) {
+                wordDisplay.innerText = "🎉 เคลียร์ด่าน 5 สำเร็จ!"; wordDisplay.style.color = "#2E7D32";
+                actionBtn.innerText = `ไปลุยด่าน 6 (คณิตศาสตร์ความไวแสง) ต่อเลย 👉`; actionBtn.style.backgroundColor = "#5856D6";
+                actionBtn.onclick = () => startCountdown(6);
+            } else {
+                wordDisplay.innerText = "หมดเวลาเสียก่อน!"; wordDisplay.style.color = "#FF3B30";
+                actionBtn.innerText = `ได้แค่ ${lvl5CorrectCount}/10 คำ ลองด่าน 5 ใหม่ 🔄`; actionBtn.style.backgroundColor = "#FF3B30";
+                actionBtn.onclick = () => startCountdown(5);
+            }
+        } else if (currentLevel === 6) {
+            wordDisplay.innerText = `สอบเสร็จแล้ว! ได้ ${score} / 10 คะแนน`;
+            if (score >= 7) { 
+                wordDisplay.style.color = "#2E7D32";
+                actionBtn.innerText = `เยี่ยมยอด! ไปเล่นด่าน 7 แต้มสีพิกเซลตามรูปภาพกันเลย 🎨👉`; actionBtn.style.backgroundColor = "#FF2D55";
+                actionBtn.onclick = () => startCountdown(7);
+            } else {
+                wordDisplay.style.color = "#FF3B30"; actionBtn.innerText = `ได้ไม่ถึง 7 คะแนน ลองด่าน 6 ใหม่ 🔄`;
+                actionBtn.style.backgroundColor = "#FF3B30"; actionBtn.onclick = () => startCountdown(6);
+            }
+        } else {
+            wordDisplay.innerText = "หมดเวลา!"; wordDisplay.style.color = "#333";
+            if (score >= 35) { 
+                actionBtn.innerText = `เยี่ยม! ได้ ${score} คะแนน ไปด่านต่อไป 👉`; actionBtn.style.backgroundColor = "#34C759";
+                actionBtn.onclick = () => startCountdown(currentLevel + 1);
+            } else {
+                actionBtn.innerText = `ได้ ${score}/35 คะแนน ลองใหม่ 🔄`; actionBtn.style.backgroundColor = "#FF3B30";
+                actionBtn.onclick = () => startCountdown(currentLevel);
+            }
+        }
+    }
+</script>
+
+</body>
+</html>
+
